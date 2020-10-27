@@ -1,0 +1,127 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "serviceName": {
+            "type": "string",
+            "metadata": {
+                "description": "Service Name. Max 10 characters."
+            },
+            "maxLength": 10,
+            "defaultValue": "adjoin"
+        },
+        "location": {
+            "type": "string",
+            "metadata": {
+                "description": "Storage account for Function App."
+            },
+            "defaultValue": "[resourceGroup().location]"
+        },
+        "storageSpecs": {
+            "type": "object",
+            "metadata": {
+                "description": "JSON object defining storage account properties."
+            },
+            "defaultValue": {
+                "kind": "StorageV2",
+                "sku": "Stanard_LRS"
+            }
+        },
+        "appServicePlanSpecs": {
+            "type": "object",
+            "metadata": {
+                "description": "JSON object defining App Service plan properties."
+            },
+            "defaultValue": {
+                "sku": "F1",
+                "capacity": 1,
+                "tier": "Dynamic",
+                "computeMode": "Dynamic"
+            }
+        },
+        "functionAppSpecs": {
+            "type": "object",
+            "metadata": {
+                "description": "JSON object defining Function app properties."
+            },
+            "defaultValue": {
+                "kind": "functionapp",
+                "functionExtensionVersion": "~2"
+            }
+        },
+        "environment": {
+            "type": "string",
+            "metadata": {
+                "description": "Environment name."
+            },
+            "allowedValues": [
+                "QA",
+                "Prod"
+            ],
+            "defaultValue": "QA"
+        }
+    },
+    "functions": [],
+    "variables": {},
+    "resources": [
+        {
+            "name": "linkedDeployment-storageAccount",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat('artifactsLocation', '/templates/storageAccount.template.json', 'artifactsLocationSasToken')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "serviceName": { "value": "[parameters('serviceName')]" },
+                    "location": { "value": "[parameters('location')]" },
+                    "storageSpecs": { "value": "[parameters('storageSpecs')]" },
+                    "environment": { "value": "[parameters('environment')]" }
+                }
+            }
+        },
+        {
+            "name": "linkedDeployment-appServicePlan",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat('artifactsLocation', '/templates/appServicePlan.template.json', 'artifactsLocationSasToken')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "serviceName": { "value": "[parameters('serviceName')]" },
+                    "location": { "value": "[parameters('location')]" },
+                    "appServicePlanSpecs": { "value": "[parameters('appServicePlanSpecs')]" },
+                    "environment": { "value": "[parameters('environment')]" }
+                }
+            }
+        },
+        {
+            "name": "linkedDeployment-functionApp",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat('artifactsLocation', '/templates/functionApp.template.json', 'artifactsLocationSasToken')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "serviceName": { "value": "[parameters('serviceName')]" },
+                    "location": { "value": "[parameters('location')]" },
+                    "functionAppSpecs": { "value": "[parameters('functionAppSpecs')]" },
+                    "environment": { "value": "[parameters('environment')]" }
+                }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', 'linkedDeployment-appServicePlan')]",
+                "[resourceId('Microsoft.Resources/deployments', 'linkedDeployment-storageAccount')]"
+            ]
+        }
+    ],
+    "outputs": {}
+}

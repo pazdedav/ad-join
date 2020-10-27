@@ -1,0 +1,66 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "serviceName": {
+            "type": "string",
+            "metadata": {
+                "description": "Service Name. Max 10 characters."
+            },
+            "maxLength": 10,
+            "defaultValue": "adjoin"
+        },
+        "location": {
+            "type": "string",
+            "metadata": {
+                "description": "Storage account for Function App."
+            },
+            "defaultValue": "[resourceGroup().location]"
+        },
+        "storageSpecs": {
+            "type": "object",
+            "metadata": {
+                "description": "JSON object defining storage account properties."
+            },
+            "defaultValue": {
+                "kind": "StorageV2",
+                "sku": "Stanard_LRS"
+            }
+        },
+        "environment": {
+            "type": "string",
+            "metadata": {
+                "description": "Environment name."
+            },
+            "allowedValues": [
+                "QA",
+                "Prod"
+            ],
+            "defaultValue": "QA"
+        }
+    },
+    "functions": [],
+    "variables": {
+        "env": "[if(startsWith(parameters('environment'), 'QA'), 'q', 'p')]",
+        "storageAccountName": "[toLower(concat(parameters('serviceName'), variables('env'), uniquestring(resourceGroup().id)))]" // Must be lowercase, 3-24 characters max (letters, numbers only), uniqueString() function generates 11 chars string
+    },
+    "resources": [
+        {
+            // Azure Storage account, required by Functions
+            "name": "[variables('storageAccountName')]",
+            "type": "Microsoft.Storage/storageAccounts",
+            "apiVersion": "2019-06-01",
+            "tags": {
+            },
+            "location": "[parameters('location')]",
+            "kind": "[parameters('storageSpecs').kind]",
+            "sku": {
+                "name": "[parameters('storageSpecs').sku]"
+            },
+            "properties": {
+                "supportsHttpsTrafficOnly": true
+            }
+        }
+    ],
+    "outputs": {}
+}

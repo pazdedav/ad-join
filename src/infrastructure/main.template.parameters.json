@@ -1,0 +1,35 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "serviceName": {
+            "value": "adjoin"
+        },
+        "location": {
+            "value": "westeurope"
+        },
+        "storageSpecs": {
+            "value": {
+                "kind": "StorageV2",
+                "sku": "Stanard_LRS"
+            }
+        },
+        "appServicePlanSpecs": {
+            "value": {
+                "sku": "F1",
+                "capacity": 1,
+                "tier": "Dynamic",
+                "computeMode": "Dynamic"
+            }
+        },
+        "functionAppSpecs": {
+            "value": {
+                "kind": "functionapp",
+                "functionExtensionVersion": "~2"
+            }
+        },
+        "environment": {
+            "value": "QA"
+        }
+    }
+}

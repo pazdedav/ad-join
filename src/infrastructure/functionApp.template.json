@@ -1,0 +1,98 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "serviceName": {
+            "type": "string",
+            "metadata": {
+                "description": "Service Name. Max 10 characters."
+            },
+            "maxLength": 10,
+            "defaultValue": "adjoin"
+        },
+        "location": {
+            "type": "string",
+            "metadata": {
+                "description": "Azure region for the deployment."
+            },
+            "defaultValue": "[resourceGroup().location]"
+        },
+        "functionAppSpecs": {
+            "type": "object",
+            "metadata": {
+                "description": "JSON object defining Function app properties."
+            },
+            "defaultValue": {
+                "kind": "functionapp",
+                "functionExtensionVersion": "~2"
+            }
+        },
+        "environment": {
+            "type": "string",
+            "metadata": {
+                "description": "Environment name."
+            },
+            "allowedValues": [
+                "QA",
+                "Prod"
+            ],
+            "defaultValue": "QA"
+        }
+    },
+    "functions": [],
+    "variables": {
+        "env": "[if(startsWith(parameters('environment'), 'QA'), 'q', 'p')]",
+        "storageAccountName": "[toLower(concat(parameters('serviceName'), variables('env'), uniquestring(resourceGroup().id)))]", // Must be lowercase, 3-24 characters max (letters, numbers only), uniqueString() function generates 11 chars string
+        "functionWorkerRuntime": "powershell", // The language worker runtime to load in the function app.
+        "appServicePlanName": "[concat('plan-', parameters('serviceName'), '-', parameters('environment'))]",
+        "functionAppName": "[variables('storageAccountName')]",
+        "storageAccountConnectionString": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';EndpointSuffix=', environment().suffixes.storage, ';AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2019-06-01').keys[0].value)]"
+    },
+    "resources": [
+        {
+            "name": "[variables('functionAppName')]",
+            "type": "Microsoft.Web/sites",
+            "apiVersion": "2020-06-01",
+            "location": "[parameters('location')]",
+            "kind": "[parameters('functionAppSpecs').kind]",
+            "dependsOn": [
+            ],
+            "properties": {
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
+                "siteConfig": {
+                    "appSettings": [
+                        {
+                            "name": "AzureWebJobsDashboard",
+                            "value": "[variables('storageAccountConnectionString')]"
+                        },
+                        {
+                            "name": "AzureWebJobsStorage",
+                            "value": "[variables('storageAccountConnectionString')]"
+                        },
+                        {
+                            "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
+                            "value": "[variables('storageAccountConnectionString')]"
+                        },
+                        {
+                            "name": "WEBSITE_CONTENTSHARE",
+                            "value": "[variables('functionAppName')]"
+                        },
+                        {
+                            "name": "FUNCTIONS_EXTENSION_VERSION",
+                            "value": "[parameters('functionAppSpecs').functionExtensionVersion]"
+                        },
+                        {
+                            "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+                            "value": "[reference(resourceId('microsoft.insights/components/', 'applicationInsightsName'), '2015-05-01').InstrumentationKey]"
+                        },
+                        {
+                            "name": "FUNCTIONS_WORKER_RUNTIME",
+                            "value": "[variables('functionWorkerRuntime')]"
+                        }
+                    ]
+                }
+            }
+        }
+    ],
+    "outputs": {}
+}

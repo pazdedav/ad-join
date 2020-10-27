@@ -1,0 +1,68 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "serviceName": {
+            "type": "string",
+            "metadata": {
+                "description": "Service Name. Max 10 characters."
+            },
+            "maxLength": 10,
+            "defaultValue": "adjoin"
+        },
+        "location": {
+            "type": "string",
+            "metadata": {
+                "description": "Azure region for the deployment."
+            },
+            "defaultValue": "[resourceGroup().location]"
+        },
+        "appServicePlanSpecs": {
+            "type": "object",
+            "metadata": {
+                "description": "JSON object defining App Service plan properties."
+            },
+            "defaultValue": {
+                "sku": "F1",
+                "capacity": 1,
+                "tier": "Dynamic",
+                "computeMode": "Dynamic"
+            }
+        },
+        "environment": {
+            "type": "string",
+            "metadata": {
+                "description": "Environment name."
+            },
+            "allowedValues": [
+                "QA",
+                "Prod"
+            ],
+            "defaultValue": "QA"
+        }
+    },
+    "functions": [],
+    "variables": {
+        "appServicePlanName": "[concat('plan-', parameters('serviceName'), '-', parameters('environment'))]"
+    },
+    "resources": [
+        {
+            "name": "[variables('appServicePlanName')]",
+            "type": "Microsoft.Web/serverfarms",
+            "apiVersion": "2020-06-01",
+            "location": "[parameters('location')]",
+            "sku": {
+                "name": "[parameters('appServicePlanSpecs').sku]",
+                "capacity": "[parameters('appServicePlanSpecs').capacity]",
+                "tier": "[parameters('appServicePlanSpecs').tier]"
+            },
+            "tags": {
+            },
+            "properties": {
+                "name": "[variables('appServicePlanName')]",
+                "computeMode": "[parameters('appServicePlanSpecs').computeMode]"
+            }
+        }
+    ],
+    "outputs": {}
+}
