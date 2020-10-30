@@ -14,8 +14,7 @@
             "type": "string",
             "metadata": {
                 "description": "Storage account for Function App."
-            },
-            "defaultValue": "[resourceGroup().location]"
+            }
         },
         "storageSpecs": {
             "type": "object",

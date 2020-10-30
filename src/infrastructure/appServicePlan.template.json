@@ -14,8 +14,7 @@
             "type": "string",
             "metadata": {
                 "description": "Azure region for the deployment."
-            },
-            "defaultValue": "[resourceGroup().location]"
+            }
         },
         "appServicePlanSpecs": {
             "type": "object",
@@ -55,8 +54,6 @@
                 "name": "[parameters('appServicePlanSpecs').sku]",
                 "capacity": "[parameters('appServicePlanSpecs').capacity]",
                 "tier": "[parameters('appServicePlanSpecs').tier]"
-            },
-            "tags": {
             },
             "properties": {
                 "name": "[variables('appServicePlanName')]",

@@ -14,8 +14,7 @@
             "type": "string",
             "metadata": {
                 "description": "Azure region for the deployment."
-            },
-            "defaultValue": "[resourceGroup().location]"
+            }
         },
         "functionAppSpecs": {
             "type": "object",
@@ -55,8 +54,6 @@
             "apiVersion": "2020-06-01",
             "location": "[parameters('location')]",
             "kind": "[parameters('functionAppSpecs').kind]",
-            "dependsOn": [
-            ],
             "properties": {
                 "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
                 "siteConfig": {

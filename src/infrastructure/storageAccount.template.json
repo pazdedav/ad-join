@@ -14,8 +14,7 @@
             "type": "string",
             "metadata": {
                 "description": "Storage account for Function App."
-            },
-            "defaultValue": "[resourceGroup().location]"
+            }
         },
         "storageSpecs": {
             "type": "object",
@@ -50,8 +49,6 @@
             "name": "[variables('storageAccountName')]",
             "type": "Microsoft.Storage/storageAccounts",
             "apiVersion": "2019-06-01",
-            "tags": {
-            },
             "location": "[parameters('location')]",
             "kind": "[parameters('storageSpecs').kind]",
             "sku": {
